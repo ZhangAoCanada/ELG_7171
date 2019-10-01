@@ -91,10 +91,10 @@ class ControlTurtle:
         """
         # change the orientation till it reaches the tolerance
         # positive means go counter clockwise, negative means clockwise
-        if orientation >= 0.1:
+        if orientation >= 0.05:
             self.vel.angular.z = 0.1
             self.vel.linear.x = 0.
-        elif orientation <= -0.1:
+        elif orientation <= -0.05:
             self.vel.angular.z = -0.1
             self.vel.linear.x = 0.
         # change the position till it reaches the distance tolerance
