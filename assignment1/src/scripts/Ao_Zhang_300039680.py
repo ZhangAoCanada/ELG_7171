@@ -79,8 +79,8 @@ class ControlTurtle:
             target_angle = np.arccos(target_angle_cos)
         else:
             target_angle = 2*np.pi - np.arccos(target_angle_cos)
-
-        return (target_angle - self.pose.theta)
+        # return as degrees
+        return (target_angle - self.pose.theta) / np.pi * 180
 
     def Navigate(self, distance, orientation):
         """
@@ -132,15 +132,15 @@ class ControlTurtle:
                 # get distance and orientation errors
                 distance = self.GetDistance()
                 orientation = self.GetOrientation()
-                # once the orientation error exceed one circle, minus a circle
-                if orientation >= 2 * np.pi:
-                    orientation -= 2 * np.pi
+                # once the orientation error exceed one circle, remove one circle
+                if orientation >= 360:
+                    orientation -= 360
+                elif orientation <= -360:
+                    orientation += 360
                 
-                # transfer radian to degree (as requirement says)
-                orientation_degrees = orientation / np.pi * 180
                 ################ print distance and orientation errors #############
                 print("Distance error: \t {} m".format(distance))
-                print("Orientation error: \t {} degrees".format(orientation_degrees))
+                print("Orientation error: \t {} degrees".format(orientation))
 
                 # navigate the turtle
                 self.Navigate(distance, orientation)
