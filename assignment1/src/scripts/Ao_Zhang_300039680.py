@@ -132,16 +132,18 @@ class ControlTurtle:
                 # get distance and orientation errors
                 distance = self.GetDistance()
                 orientation = self.GetOrientation()
+                
+                # transfer radian to degree (as requirement says)
+                orientation_degrees = orientation / np.pi * 180
+                ################ print distance and orientation errors #############
+                print("Distance error: \t {} m".format(distance))
+                print("Orientation error: \t {} degrees".format(orientation_degrees))
+
                 # navigate the turtle
                 self.Navigate(distance, orientation)
                 # publish change to the turtlesim
                 self.pub.publish(self.vel)
 
-                # transfer radian to degree (as requirement says)
-                orientation = orientation / np.pi * 180
-                ################ print distance and orientation errors #############
-                print("Distance error: \t {} m".format(distance))
-                print("Orientation error: \t {} degrees".format(orientation))
                 # sleep till the next commend sent
                 self.rate.sleep()
 
