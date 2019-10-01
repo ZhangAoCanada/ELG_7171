@@ -132,6 +132,8 @@ class ControlTurtle:
                 # get distance and orientation errors
                 distance = self.GetDistance()
                 orientation = self.GetOrientation()
+                if orientation >= 2 * np.pi:
+                    orientation -= 2 * np.pi
                 
                 # transfer radian to degree (as requirement says)
                 orientation_degrees = orientation / np.pi * 180
