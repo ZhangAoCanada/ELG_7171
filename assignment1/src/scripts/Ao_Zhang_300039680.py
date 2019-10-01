@@ -132,6 +132,7 @@ class ControlTurtle:
                 # get distance and orientation errors
                 distance = self.GetDistance()
                 orientation = self.GetOrientation()
+                # once the orientation error exceed one circle, minus a circle
                 if orientation >= 2 * np.pi:
                     orientation -= 2 * np.pi
                 
