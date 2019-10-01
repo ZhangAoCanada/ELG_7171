@@ -138,7 +138,7 @@ class ControlTurtle:
                 elif orientation <= -360:
                     orientation += 360
                 
-                ################ print distance and orientation errors #############
+                ################ print everthing according to the requirements #############
                 print("----------------------- freshing -----------------------")
                 print("Robot's position: \t {} m".format([self.pose.x, self.pose.y]))
                 print("Target's position: \t {} m".format([self.target_x, self.target_y]))
