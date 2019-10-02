@@ -78,7 +78,13 @@ class ControlTurtle:
         if sign >= 0:
             target_angle = np.arccos(target_angle_cos)
         else:
-            target_angle = 2*np.pi - np.arccos(target_angle_cos)
+            target_angle = 2 * np.pi - np.arccos(target_angle_cos)
+
+        # if the orientation angle over 180 degrees, minus 360 degrees to change the sign
+        if (target_angle - self.pose.theta) >  np.pi:
+            target_angle -= 2 * np.pi
+        elif (target_angle - self.pose.theta) <  - np.pi:
+            target_angle += 2 * np.pi
         # return as degrees
         return (target_angle - self.pose.theta) / np.pi * 180, target_angle / np.pi *180
 
@@ -122,7 +128,7 @@ class ControlTurtle:
                 self.target_x, self.target_y = self.GetDestination()
                 # if the destination is not in x >= 0 and y <= 11, ask user to re-input
                 # till the right values found
-                if self.target_x < 0 or self.target_y > 11:
+                if (self.target_x < 0 or self.target_x > 11) or (self.target_y < 0 or self.target_y > 11):
                     print("WARNING: Invalid Input, please reinput the destination.")
                     self.target_x = None
                     self.target_y = None
@@ -132,11 +138,6 @@ class ControlTurtle:
                 # get distance and orientation errors
                 distance = self.GetDistance()
                 orientation, target_orient = self.GetOrientation()
-                # once the orientation error exceed one circle, remove one circle
-                if orientation >= 360:
-                    orientation -= 360
-                elif orientation <= -360:
-                    orientation += 360
                 
                 ################ print everthing according to the requirements #############
                 print("----------------------- freshing -----------------------")
