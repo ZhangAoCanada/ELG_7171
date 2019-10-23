@@ -156,6 +156,8 @@ class HuskyControl:
             if range_min < 1.1:
                 # rotating the robot until it directing perpenticular to the obstacle
                 if angle <= 0 and angle > -90:
+                    # the reason I add -0.02 m/s to the linear speed is that
+                    # I want to make it stop quickly when it approaches cone
                     self.vel.linear.x = -0.02
                     self.vel.angular.z = -0.2
                 elif angle > 0 and angle < 90:
