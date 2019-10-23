@@ -8,7 +8,7 @@
 ## Create ROS package
 ```
 $cd ~/catkin_ws/src
-$catkin_create_pkg assignment2_AoZhang rospy husky_gazebo
+$catkin_create_pkg assignment2_aozhang rospy husky_gazebo
 $cd ..
 $catkin_make
 $. ~/catkin_ws/devel/setup.bash 
@@ -17,7 +17,7 @@ $(or source ~/.bashrc)
 
 ## Copy all files into the package
 ```
-$roscd assignment2_AoZhang/src
+$roscd assignment2_aozhang/src
 $mkdir scripts
 $cd scripts
 $scp -r [directory of my assignment files]/* ./
@@ -33,7 +33,7 @@ Then, add a construction cone wherever you want.
 
 Start another terminal window
 ```
-$rosrun assignment2_AoZhang ELG7171_assignment2_AoZhang.py
+$rosrun assignment2_aozhang ELG7171_assignment2_AoZhang.py
 ```
 When you see the words like "Enter the x coordinate of the destination:", please enter
 the value of destination's x coordinate. And when "Enter the y coordinate of the destination:", 
