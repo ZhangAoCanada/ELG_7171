@@ -9,9 +9,10 @@ The format of this Readme will follow the github README.md format
 ## Denpendencies
 1. ros-kinetic
 2. python-numpy
-3. husky
+3. husky-simulator
 
 ## Create ROS package
+
 '''
 $cd ~/catkin_ws/src
 $catkin_create_pkg assignment1_AoZhang rospy geometry_msgs turtlesim
@@ -22,6 +23,7 @@ $(or source ~/.bashrc)
 '''
 
 ## Copy all files into the package
+
 '''
 $roscd assignment1_AoZhang/src
 $mkdir scripts
@@ -31,6 +33,7 @@ $chmod 777 ./*
 '''
 
 ## Run the package
+
 Start a terminal window
 '''
 $roscore
@@ -49,6 +52,7 @@ please enter the value of destination's y coordinate.
 Then the turtle will move to the destination.
 
 ## Re-run the node
+
 If you see the tutle stops with the message
 '''
 ----------------------------------------------
