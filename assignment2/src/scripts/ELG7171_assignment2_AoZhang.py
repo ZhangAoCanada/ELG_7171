@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """
 ELG7171 Assignment 2
 Student Name:       Ao Zhang
