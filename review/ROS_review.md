@@ -2,47 +2,47 @@
 
 ## :boom: Basic Commands
 
-#### 1. start a master
+### 1. start a master
 ```
 $ roscore
 ```
 
-#### 2. run a node
+### 2. run a node
 ```
 $ rosrun package_name node_name
 ```
 
-#### 3. see active nodes
+### 3. see active nodes
 ```
 $ rosnode list
 ```
 
-#### 4. find node info
+### 4. find node info
 ```
 $ rosnode info node_name
 ```
 
-#### 5. see active topic
+### 5. see active topic
 ```
 $ rostopic list
 ```
 
-#### 6. to suscribe to and print the content of a topic
+### 6. to suscribe to and print the content of a topic
 ```
 $ rostopic echo /topic_name
 ```
 
-#### 7. find infor about a topic
+### 7. find infor about a topic
 ```
 $ rostopic info /topic_name
 ```
 
-#### 8. find type of topic 
+### 8. find type of topic 
 ```
 $ rostopic type /topic_name
 ```
 
-#### 9. publish a message to a topic
+### 9. publish a message to a topic
 ```
 $ rostopic pub [-r] /topic_name type data
 ```
@@ -57,7 +57,7 @@ $ rostopic pub [-r] /topic_name type data
 
 ## :boom: ROS Packages
 
-#### 1. create a package
+### 1. create a package
 ```
 $ cd ~/catkin_ws/src
 $ catkin_create_pkg pkg_name dependencies[rospy, tf, ...]
@@ -66,7 +66,7 @@ $ catkin_make
 $ source ~/catkin_ws/devel/setup.bash
 ```
 
-#### 2. kill node
+### 2. kill node
 from python file
 ```
 rospy.signal_shutdown("GoodBye")
@@ -77,7 +77,7 @@ from bash command
 $ rosnode kill node_name
 ```
 
-#### 3. loginfo
+### 3. loginfo
 from python file
 ```
 rospy.loginfo(string)
@@ -91,11 +91,11 @@ rospy.loginfo(string)
 
 * It publishes the string to node rosout.
 
-#### 4. subscriber
+### 4. subscriber
 
 Nodes that wnat to receive messages on a certain topic can subscribe to that topic by making a request to *roscore*
 
-#### 5. usage of spin()
+### 5. usage of spin()
 from python file
 ```
 rospy.spin()
@@ -105,12 +105,12 @@ This keeps the node alive until it explicitly shut down.
 
 ## :boom: Namespace
 
-#### 1. global names
+### 1. global names
 ```
 /turtle1/pose
 ```
 
-#### 2. relative names
+### 2. relative names
 if default namespace is ```/a/b/c``` and relative graph resource name is ```d/e/f```, then the global resource name is ```/a/b/c/d/e/f```
 
 For *default namespace*, one can remap it by
@@ -122,19 +122,19 @@ or
 $ export ROS_NAMESPACE=new_default_ns
 ```
 
-#### 3. private names
+### 3. private names
 begin with ```~```
 ```
 ~pose
 ```
 
-#### 4. anonymous names
+### 4. anonymous names
 This name is to ensure the uniqueness, and from python file
 ```
 rospy.init_node('node_name', anonymous = True)
 ```
 
-#### 5. remapping arguments
+### 5. remapping arguments
 
 * remap the default namespace
 ```
@@ -153,7 +153,7 @@ $ __log:=[new_name]
 
 ## :boom: Gazebo Simulation
 
-#### 1. view of the .world file
+### 1. view of the .world file
 ```
 $ /usr/share/gazebo-7/worlds/
 ```
@@ -163,19 +163,19 @@ To find a ros package
 rospack find [package_name]
 ```
 
-#### 2. run husky with world arg
+### 2. run husky with world arg
 ```
 $ roslaunch husky_gazebo husky_empty_world.launch world_name:=worlds/willowgarage.world
 ```
 
 ## :boom: Visualization
 
-#### 1. Rviz
+### 1. Rviz
 ```
 $ rosrun rviz rviz
 ```
 
-#### 2. rqt_plot
+### 2. rqt_plot
 ```
 $ rqt_plot
 $ rqt_plot /turtle1/pose/x /turtle/pose/y
@@ -183,7 +183,7 @@ $ rqt_plot /turtle1/pose/x /turtle/pose/y
 
 ## :boom: Ros Bag (Record and Replay)
 
-#### 1. record
+### 1. record
 * to record specific topics
 ```
 $ rosbag record -o filename[.bag] topic1 topic2
@@ -194,7 +194,7 @@ $ rosbag record -o filename[.bag] topic1 topic2
 $ rosbag record -o filename[.bag] -a
 ```
 
-#### 2. stop recording
+### 2. stop recording
 recommanded way
 ```
 $ rosnode kill
@@ -205,7 +205,7 @@ force stop way
 ctrl + C
 ```
 
-#### 3. play bags
+### 3. play bags
 * to get the info of the bag file
 ```
 $ rosbag info filename[.bag]
@@ -220,14 +220,14 @@ $ rosbag play [-r freq] filename[.bag]
 
 *Also Note*: The reason for the error when replaying is that the ```distance = intergral of velocity``` for bag files.
 
-#### 4. alternative way
+### 4. alternative way
 ```
 $ rqt_bag
 ```
 
 ## :boom: ROS launch file
 
-#### 1. an example of ros launch file
+### 1. an example of ros launch file
 ```
 <launch>
   <node
@@ -257,13 +257,13 @@ $ rqt_bag
 </launch>
 ```
 
-#### 2. notable args of nodes
+### 2. notable args of nodes
 
 * ```type```: excutable file (e.g. pythonfile.py)
 
 * ```name```: node name (for remapping)
 
-#### 3. run a launch file
+### 3. run a launch file
 ```
 $ launch /path/to/launch/file.launch
 ```
@@ -272,12 +272,12 @@ or
 # roslaunch package_name launchfile.launch
 ```
 
-#### 4. stop a launch file
+### 4. stop a launch file
 ```
 ctrl + C
 ```
 
-#### 5. some comments
+### 5. some comments
 
 * XML syntex, ```<launch>``` and ```</launch>```.
 
@@ -298,7 +298,7 @@ ctrl + C
 <remap from="original_name" to="new_name"/>
 ```
 
-#### 6. include launch file in launch file
+### 6. include launch file in launch file
 ```
 <include file="file/path/to/launch/file"/>
 ```
@@ -312,12 +312,12 @@ or
 <include file="..." ns="..."/>
 ```
 
-#### 7. arguments in the terminal
+### 7. arguments in the terminal
 ```
 $ roslaunch pkg_name luanch_file arg1_name:=arg1_value arg2_name:=arg2_value
 ```
 
-#### 8. arguments in launch file
+### 8. arguments in launch file
 * declare argument
 ```
 <arg name="arg_name">
@@ -335,7 +335,7 @@ $ roslaunch pkg_name luanch_file arg1_name:=arg1_value arg2_name:=arg2_value
 
 * get argument value inside launch file by using ```$(arg arg_name)```.
 
-#### 9. Example of arguments in launch files
+### 9. Example of arguments in launch files
 *LAUNCH FILE 1*
 ```
 <launch>
@@ -362,7 +362,7 @@ $ roslaunch pkg_name luanch_file arg1_name:=arg1_value arg2_name:=arg2_value
 </launch>
 ```
 
-#### 10. groups
+### 10. groups
 
 * about namespace
 ```
