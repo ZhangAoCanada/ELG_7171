@@ -263,3 +263,132 @@ $ rqt_bag
 
 * ```name```: node name (for remapping)
 
+#### 3. run a launch file
+```
+$ launch /path/to/launch/file.launch
+```
+or
+```
+# roslaunch package_name launchfile.launch
+```
+
+#### 4. stop a launch file
+```
+ctrl + C
+```
+
+#### 5. some comments
+
+* XML syntex, ```<launch>``` and ```</launch>```.
+
+* the log files of the latest ros launch are kept at: ```/.ros/log/latest```.
+
+* output to screen: ```output="screen"```.
+
+* make the window always open ```respawn="true"```.
+
+* make the window termination core ```required="true"```.
+
+* change the namespace ```ns="new_namespace"```.
+
+* open another terminal ```launch-prefix="xterm -e"```. [this only works on Ubuntu 16.04]
+
+* remap in launch file
+```
+<remap from="original_name" to="new_name"/>
+```
+
+#### 6. include launch file in launch file
+```
+<include file="file/path/to/launch/file"/>
+```
+or
+```
+<include file="$(find package_name)/relative/path/to/file"/>
+```
+
+*Note*: one can push the content of an included file down into a namespace by
+```
+<include file="..." ns="..."/>
+```
+
+#### 7. arguments in the terminal
+```
+$ roslaunch pkg_name luanch_file arg1_name:=arg1_value arg2_name:=arg2_value
+```
+
+#### 8. arguments in launch file
+* declare argument
+```
+<arg name="arg_name">
+```
+
+* assign the default value of the argument, which *can be overwritten* from bash command
+```
+<arg name="arg_name" default="arg_default_value"/>
+```
+
+* assign the value of the argument, which *cannot be overwritten* from bash cmd
+```
+<arg name="arg_name" value="arg_value"/>
+```
+
+* get argument value inside launch file by using ```$(arg arg_name)```.
+
+#### 9. Example of arguments in launch files
+*LAUNCH FILE 1*
+```
+<launch>
+  <arg name="x" value="4"/>
+  <arg name="enable-laser" value="true"/>
+</launch>
+```
+
+*LAUNCH FILE 2*
+```
+<launch>
+  <arg name="y" value="10"/>
+</launch>
+```
+
+*INCLUDE LAUNCH FILE 2 INTO 1*
+```
+<launch>
+  <arg name="x" default="4"/>
+  <arg name="enable-laser" value="true"/>
+  <include file=".../file2.launch">
+    <arg name="y" value="$(arg x)"/>
+  </include>
+</launch>
+```
+
+#### 10. groups
+
+* about namespace
+```
+<group ns="namespace">
+  : all nodes within will be pushed into this default namespace
+</group>
+```
+
+* `if` condition
+```
+<group if="4">
+  : all nodes will be included
+</group>
+```
+
+* still `if` condition
+```
+<group if="0">
+  : all nodes will not be included
+</group>
+```
+
+* `unless` condition
+```
+<group unless="1">
+  : all nodes will not be included
+</group>
+```
+
