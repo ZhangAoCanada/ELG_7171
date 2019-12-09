@@ -152,3 +152,68 @@ $ __log:=[new_name]
 ```
 
 ## :boom: Gazebo Simulation
+
+#### 1. view of the .world file
+```
+$ /usr/share/gazebo-7/worlds/
+```
+
+To find a ros package
+```
+rospack find [package_name]
+```
+
+#### 2. run husky with world arg
+```
+$ roslaunch husky_gazebo husky_empty_world.launch world_name:=worlds/willowgarage.world
+```
+
+## :boom: Visualization
+
+#### 1. Rviz
+```
+$ rosrun rviz rviz
+```
+
+#### 2. rqt_plot
+```
+$ rqt_plot
+$ rqt_plot /turtle1/pose/x /turtle/pose/y
+```
+
+## :boom: Ros Bag (Record and Replay)
+
+#### 1. record
+* to record specific topics
+```
+$ rosbag record -o filename[.bag] topic1 topic2
+```
+
+* to record all active topics
+```
+$ rosbag record -o filename[.bag] -a
+```
+
+#### 2. stop recording
+recommanded way
+```
+$ rosnode kill
+```
+
+force stop way
+```
+ctrl + C
+```
+
+#### 3. play bags
+* to get the info of the bag file
+```
+$ rosbag info filename[.bag]
+```
+
+* to play the bag
+```
+$ rosbag play [-r freq] filename[.bag]
+```
+
+*Note*: one can pass arg, ```-r 5``` to overwrite the topic publishing rate to $5$ Hz
