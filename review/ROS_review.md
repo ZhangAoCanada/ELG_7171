@@ -104,3 +104,11 @@ rospy.spin()
 This keeps the node alive until it explicitly shut down.
 
 ## :boom: Namespace
+
+#### 1. global names
+```
+/turtle1/pose
+```
+
+#### 2. relative names
+if default namespace is ```/a/b/c``` and relative graph resource name is ```d/e/f```, then the global resource name is ```/a/b/c/d/e/f```
