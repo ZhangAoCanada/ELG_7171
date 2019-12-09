@@ -230,30 +230,30 @@ $ rqt_bag
 #### 1. an example of ros launch file
 ```
 <launch>
-	<node
-		pkg="turtlesim"
-		type="turtlesim_node"
-		name="turtleA"
-        respawn="true"
-		>
-	</node>
+  <node
+    pkg="turtlesim"
+    type="turtlesim_node"
+    name="turtleA"
+    respawn="true"
+    >
+  </node>
 
-    <node
-		pkg="ttcontrol"
-		type="posesubscrib.py"
-		name="control_tt"
-        output="screen"
-		>
-	</node>
+  <node
+    pkg="ttcontrol"
+    type="posesubscrib.py"
+    name="control_tt"
+    output="screen"
+    >
+  </node>
 
-    <node
-		pkg="teleop_twist_keyboard"
-		type="teleop_twist_keyboard.py"
-		name="teleop"
-		launch-prefix="xterm -e"
-		>
-		<remap from="cmd_vel" to="turtle1/cmd_vel"/>
-	</node>
+  <node
+    pkg="teleop_twist_keyboard"
+    type="teleop_twist_keyboard.py"
+    name="teleop"
+    launch-prefix="xterm -e"
+    >
+    <remap from="cmd_vel" to="turtle1/cmd_vel"/>
+  </node>
 </launch>
 ```
 
