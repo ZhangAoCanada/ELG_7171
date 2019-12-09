@@ -2,12 +2,12 @@
 
 ## Basic Commands
 
-### start a master
+#### start a master
 ```
 roscore
 ```
 
-### run a node
+#### run a node
 ```
 rosrun package_name node_name
 ```
