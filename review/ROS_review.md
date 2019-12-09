@@ -2,47 +2,47 @@
 
 ## Basic Commands
 
-#### start a master
+#### 1. start a master
 ```
 roscore
 ```
 
-#### run a node
+#### 2. run a node
 ```
 rosrun package_name node_name
 ```
 
-#### see active nodes
+#### 3. see active nodes
 ```
 rosnode list
 ```
 
-#### find node info
+#### 4. find node info
 ```
 rosnode info node_name
 ```
 
-#### see active topic
+#### 5. see active topic
 ```
 rostopic list
 ```
 
-#### to suscribe to and print the content of a topic
+#### 6. to suscribe to and print the content of a topic
 ```
 rostopic echo /topic_name
 ```
 
-#### find infor about a topic
+#### 7. find infor about a topic
 ```
 rostopic info /topic_name
 ```
 
-#### find type of topic 
+#### 8. find type of topic 
 ```
 rostopic type /topic_name
 ```
 
-#### publish a message to a topic
+#### 9. publish a message to a topic
 ```
 rostopic pub [-r] /topic_name type data
 ```
