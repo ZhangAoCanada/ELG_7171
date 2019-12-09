@@ -216,4 +216,50 @@ $ rosbag info filename[.bag]
 $ rosbag play [-r freq] filename[.bag]
 ```
 
-*Note*: one can pass arg, ```-r 5``` to overwrite the topic publishing rate to $5$ Hz
+*Note*: one can pass arg, ```-r 5``` to overwrite the topic publishing rate to 5 Hz.
+
+*Also Note*: The reason for the error when replaying is that the ```distance = intergral of velocity``` for bag files.
+
+#### 4. alternative way
+```
+$ rqt_bag
+```
+
+## :boom: ROS launch file
+
+#### 1. an example of ros launch file
+```
+<launch>
+	<node
+		pkg="turtlesim"
+		type="turtlesim_node"
+		name="turtleA"
+        respawn="true"
+		>
+	</node>
+
+    <node
+		pkg="ttcontrol"
+		type="posesubscrib.py"
+		name="control_tt"
+        output="screen"
+		>
+	</node>
+
+    <node
+		pkg="teleop_twist_keyboard"
+		type="teleop_twist_keyboard.py"
+		name="teleop"
+		launch-prefix="xterm -e"
+		>
+		<remap from="cmd_vel" to="turtle1/cmd_vel"/>
+	</node>
+</launch>
+```
+
+#### 2. notable args of nodes
+
+* ```type```: excutable file (e.g. pythonfile.py)
+
+* ```name```: node name (for remapping)
+
