@@ -143,8 +143,8 @@ class Assignment3(object):
         # Transformation matrix^-1 * Rotation matrix
         H_11 = np.cos(THETA + alpha) + Y_L / X_L * np.sin(THETA + alpha)
         H_12 = -np.sin(THETA + alpha) + Y_L / X_L * np.cos(THETA + alpha)
-        H_21 = 1 / X_L * np.sin(THETA + alpha)
-        H_22 = 1 / X_L * np.cos(THETA + alpha)
+        H_21 = 1 / np.abs(X_L) * np.sin(THETA + alpha)
+        H_22 = 1 / np.abs(X_L) * np.cos(THETA + alpha)
         H_inverse = np.array([[H_11, H_12], [H_21, H_22]])
         # get v_l^a
         v_la = np.array([[v_a], [w_a]])
@@ -174,6 +174,7 @@ class Assignment3(object):
         """
         while not rospy.is_shutdown():
             range_min, angle = self.GetObstaclePos()
+
             e_original, e_norm = self.GetNormalizedError(range_min)
             # if no obstacles found, stop there
             if e_norm is None:
@@ -200,6 +201,7 @@ class Assignment3(object):
 
             # navigate the turtle
             self.Navigation(v_w, w_w)
+
             # publish change to the turtlesim
             self.pub.publish(self.vel)
             # sleep till the next commend sent
