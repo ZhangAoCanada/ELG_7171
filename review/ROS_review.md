@@ -112,3 +112,43 @@ This keeps the node alive until it explicitly shut down.
 
 #### 2. relative names
 if default namespace is ```/a/b/c``` and relative graph resource name is ```d/e/f```, then the global resource name is ```/a/b/c/d/e/f```
+
+For *default namespace*, one can remap it by
+```
+$ __ns:=[new_namespace]
+```
+or
+```
+$ export ROS_NAMESPACE=new_default_ns
+```
+
+#### 3. private names
+begin with ```~```
+```
+~pose
+```
+
+#### 4. anonymous names
+This name is to ensure the uniqueness, and from python file
+```
+rospy.init_node('node_name', anonymous = True)
+```
+
+#### 5. remapping arguments
+
+* remap the default namespace
+```
+$ __ns:=[new_namespace]
+```
+
+* remap the node's name
+```
+$ __name:=[new_name]
+```
+
+* remap the default name of hte resource's log file
+```
+$ __log:=[new_name]
+```
+
+## :boom: Gazebo Simulation
