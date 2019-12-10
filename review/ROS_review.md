@@ -269,7 +269,7 @@ $ launch /path/to/launch/file.launch
 ```
 or
 ```
-# roslaunch package_name launchfile.launch
+$ roslaunch package_name launchfile.launch
 ```
 
 ### 4. stop a launch file
