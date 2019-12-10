@@ -1,0 +1,8 @@
+prefix=/home/ao/catkin_ws/src/bugtest/build/devel
+
+Name: bugtest
+Description: Description of bugtest
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/ao/catkin_ws/src/bugtest/build/devel/lib 
+Requires: 

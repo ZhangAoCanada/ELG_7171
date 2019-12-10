@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/ao/catkin_ws/src/bugtest/build/devel/setup.sh

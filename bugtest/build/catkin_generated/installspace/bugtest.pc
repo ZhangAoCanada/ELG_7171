@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: bugtest
+Description: Description of bugtest
+Version: 0.0.0
+Cflags: 
+Libs: -L/usr/local/lib 
+Requires: 
