@@ -51,7 +51,7 @@ $ rostopic pub [-r] /topic_name type data
 
 * The common way of nodes communicating with each other is through topics.
 
-* A topic is a name or a scream of messages with defined types.
+* A topic is a name or a stream of messages with defined types.
 
 * Before transmitting through topics, the topic name must first be advertised to the master .
 
@@ -66,7 +66,7 @@ $ catkin_make
 $ source ~/catkin_ws/devel/setup.bash
 ```
 
-### 2. kill node
+### 2. kill a node
 from python file
 ```
 rospy.signal_shutdown("GoodBye")
@@ -93,7 +93,7 @@ rospy.loginfo(string)
 
 ### 4. subscriber
 
-Nodes that wnat to receive messages on a certain topic can subscribe to that topic by making a request to *roscore*
+Nodes that want to receive messages on a certain topic can subscribe to that topic by making a request to *roscore*
 
 ### 5. usage of spin()
 from python file
@@ -153,7 +153,7 @@ $ __log:=[new_name]
 
 ## :boom: Gazebo Simulation
 
-### 1. view of the .world file
+### 1. view of the .world files
 ```
 $ /usr/share/gazebo-7/worlds/
 ```
