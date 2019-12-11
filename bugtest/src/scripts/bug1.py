@@ -386,15 +386,21 @@ class BugOne(object):
                             self.q_leave = None
                             self.shortest = 100.
                             self.whole_obstacle_visited = False
-                            # if blocking:
-                            #     v = 0.
-                            #     w = 0.
+                            if blocking:
+                                v = 0.
+                                w = 0.
+                                self.target_x = None
+                                self.target_y = None
+                                print("----------------------------------------------------")
+                                print("SOLUTION DOES NOT EXIST, PLEASE ENTER A NEW TARGET.")
+                                print("----------------------------------------------------")
+                                print("\n")
         
                 print("-------------------------- state freshing ---------------------------")
-                print("distance err x_to_goal:\t", self.EuclideanDist(robot_pose[:2], np.array([self.target_x, self.target_y])))
-                print("angle err x_to_goal:\t", self.ToDegree(orientation_err))
-                print("q_H:\t\t", self.q_hit)
-                print("q_L:\t\t", self.q_leave)
+                print("distance err x_to_goal:", self.EuclideanDist(robot_pose[:2], np.array([self.target_x, self.target_y])))
+                print("angle err x_to_goal:", self.ToDegree(orientation_err))
+                print("q_H:", self.q_hit)
+                print("q_L:", self.q_leave)
                 print([self.explore, self.whole_obstacle_visited])
         return v, w
 

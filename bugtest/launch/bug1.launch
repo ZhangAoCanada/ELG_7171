@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
+  <arg name="world_name" default="worlds/empty.world"/>
+  <arg name="x_pos" default="0"/>
+  <arg name="y_pos" default="0"/>
+  <arg name="z_pos" default="0"/>
+  <arg name="husky" default="1"/>
+
+  <arg name="laser_enabled" default="true"/>
+  <arg name="kinect_enabled" default="false"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world_name)"/> 
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <group if="$(arg husky)">
+    <include file="$(find husky_gazebo)/launch/spawn_husky.launch">
+      <arg name="laser_enabled" value="$(arg laser_enabled)"/>
+      <arg name="kinect_enabled" value="$(arg kinect_enabled)"/>
+      <arg name="x" value="$(arg x_pos)"/>
+      <arg name="y" value="$(arg y_pos)"/>
+      <arg name="z" value="$(arg z_pos)"/>
+    </include>
+  </group>
+
+  <group unless="$(arg husky)">
+    <!-- <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/> -->
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+    <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model turtlebot3_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
+  </group>
+
+  <node
+		pkg="bugtest"
+		type="bug1.py"
+		name="B1"
+        launch-prefix="xterm -e"
+        required="true"
+		>
+	</node>
+
+</launch>
+

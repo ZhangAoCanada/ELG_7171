@@ -280,7 +280,7 @@ class BugTwoAlgorithm(object):
         return intersection
 
     ##############################################################################
-    #                               Bug 1 Alogrithm                              #
+    #                               Bug 2 Alogrithm                              #
     ##############################################################################
     def GetMline(self, robot_pose):
         """
