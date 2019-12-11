@@ -136,6 +136,11 @@ rospy.init_node('node_name', anonymous = True)
 
 ### 5. remapping arguments
 
+* standard remapping syntex
+```
+resource_name:=new_resourcename
+```
+
 * remap the default namespace
 ```
 $ __ns:=[new_namespace]
