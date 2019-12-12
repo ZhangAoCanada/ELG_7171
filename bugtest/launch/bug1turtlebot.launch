@@ -23,6 +23,8 @@
     >
   </node>
   
+  <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_gazebo_rviz.launch"/>
+
   <node
     pkg="bugtest"
     type="bug1_turtlebot.py"
