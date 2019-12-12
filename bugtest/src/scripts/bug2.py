@@ -236,7 +236,7 @@ class BugTwoAlgorithm(object):
                 else:
                     previous_range = None
                     previous_angle = None
-            elif current_range - previous_range > CONTINUITY_THRESHOLD or current_range > CONTINUITY_MAX:
+            elif current_range - previous_range > CONTINUITY_THRESHOLD or current_range > CONTINUITY_MAX or ind == len(ranges)-1:
                 current_object.append([robot_pos[0] + previous_range * np.cos(previous_angle), \
                                         robot_pos[1] +  previous_range * np.sin(previous_angle)])
                 all_objects.append(np.array(current_object))

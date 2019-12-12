@@ -22,7 +22,9 @@ rosrun tf tf_echo /odom /base_laser
 # hyper parameters settings
 ROTATION_TOLERANCE = 0.02
 CONTINUITY_MAX = 1.2
-CONTINUITY_THRESHOLD = 0.3
+CONTINUITY_THRESHOLD = 0.5
+CONFIG_DISTANCE = 1
+ROBOT_SIZE = 1
 
 MLINE_MEET_THRESHOLD = 0.2
 CLOSER_THRESHOLD = 0.5
@@ -36,7 +38,7 @@ Y_L = 0.000
 THETA = 0.00
 K_P = 0.2
 
-class BugTwoAlgorithm(object):
+class TangentBugAlgorithm(object):
     def __init__(self):
         """
         Initialization
@@ -48,7 +50,6 @@ class BugTwoAlgorithm(object):
         self.explore = True
         self.whole_obstacle_visited = False
         self.leave = False
-        self.m_line = None
         # publishing node and subscribing node
         self.odom = Odometry()
         self.vel = Twist()
@@ -109,8 +110,8 @@ class BugTwoAlgorithm(object):
         # transfer to np.array
         ranges = np.array(ranges)
         # get all the outlier points to a very large value
-        ranges = np.where(ranges < self.Lidar.range_min, self.Lidar.range_max + 1, ranges)
-        ranges = np.where(ranges > self.Lidar.range_max, self.Lidar.range_max + 1, ranges)
+        ranges = np.where(ranges < self.Lidar.range_min, self.Lidar.range_max + 10., ranges)
+        ranges = np.where(ranges > self.Lidar.range_max, self.Lidar.range_max + 10., ranges)
         if len(ranges) > 1:
             # get the minimum range point with its angle to the robot
             range_ind = np.arange(len(ranges))
@@ -121,8 +122,6 @@ class BugTwoAlgorithm(object):
             angles = self.Lidar.angle_max - range_ind * self.Lidar.angle_increment
             range_min_index = np.argmin(ranges)
             object_angle = angles[range_min_index]
-            # if object_angle > np.pi:
-            #     object_angle -= 2 * np.pi
         else:
             # if nothing detected, set the default value to zero
             range_min = None
@@ -228,7 +227,7 @@ class BugTwoAlgorithm(object):
             current_range = ranges[ind]
             current_angle = angles[ind] + yaw
             if len(current_object) == 0:
-                if current_range <= CONTINUITY_MAX:
+                if current_range <= self.Lidar.range_max:
                     current_object.append([robot_pos[0] + current_range * np.cos(current_angle), \
                                             robot_pos[1] + current_range * np.sin(current_angle)])
                     previous_range = current_range
@@ -236,12 +235,12 @@ class BugTwoAlgorithm(object):
                 else:
                     previous_range = None
                     previous_angle = None
-            elif current_range - previous_range > CONTINUITY_THRESHOLD or current_range > CONTINUITY_MAX:
+            elif (current_range - previous_range) > CONTINUITY_THRESHOLD or current_range > self.Lidar.range_max or ind == len(ranges)-1:
                 current_object.append([robot_pos[0] + previous_range * np.cos(previous_angle), \
                                         robot_pos[1] +  previous_range * np.sin(previous_angle)])
                 all_objects.append(np.array(current_object))
                 current_object = []
-                if current_range <= CONTINUITY_MAX:
+                if current_range <= self.Lidar.range_max:
                     current_object.append([robot_pos[0] + current_range * np.cos(current_angle), \
                                             robot_pos[1] +  current_range * np.sin(current_angle)])
             else:
@@ -316,11 +315,27 @@ class BugTwoAlgorithm(object):
         O2 = line_seg[1]
         d1 = self.EuclideanDist(O1, x) + self.EuclideanDist(O1, goal)
         d2 = self.EuclideanDist(O2, x) + self.EuclideanDist(O2, goal)
+        O1_new, O2_new = self.PntToConfig(O1, O2)
         if d1 <= d2:
-            move_to = O1
+            move_to = O1_new
         else:
-            move_to = O2
+            move_to = O2_new
         return move_to
+
+    def PntToConfig(self, point1, point2):
+        """
+        Move to the point with certain range in order to avoid collision
+        """
+        mid_point = (point1 + point2) / 2.
+        mid_point[0] = 0.
+        diff_point1 = point1 - mid_point
+        theta_point1 = np.arcsin(diff_point1[1] / np.sqrt(np.sum(np.square(diff_point1))))
+        new_point1 = point1 + np.array([-CONFIG_DISTANCE*np.cos(theta_point1), CONFIG_DISTANCE*np.sin(theta_point1)])
+
+        diff_point2 = point2 - mid_point
+        theta_point2 = np.arcsin(diff_point2[1] / np.sqrt(np.sum(np.square(diff_point2))))
+        new_point2 = point2 + np.array([-CONFIG_DISTANCE*np.cos(theta_point2), CONFIG_DISTANCE*np.sin(theta_point2)])
+        return new_point1, new_point2
 
     ##############################################################################
     #                           Tangent Bug Alogrithm                            #
@@ -339,8 +354,8 @@ class BugTwoAlgorithm(object):
         for i in range(len(ranges)):
             current_range = ranges[i]
             current_angle = angles[i] + yaw
-            if current_range > self.range_max:
-                current_range = self.range_max
+            if current_range > self.Lidar.range_max:
+                current_range = self.Lidar.range_max
             laser_seg = np.array([x, np.array([x[0] + current_range * np.cos(current_angle), \
                                             x[1] + current_range * np.sin(current_angle)])])
             current_d = self.LineSegDist(goal, laser_seg)
@@ -348,14 +363,28 @@ class BugTwoAlgorithm(object):
                 d_reach = current_d
         return d_reach
 
-    def GetMline(self, robot_pose):
+    def FindDistFollow(self, ranges, angles, goal, x, yaw):
         """
-        Get the m-line
+        Function:
+            Find N_reach with its distance.
+        
+        Args:
+            ranges          ->          all ranges from Lidar
+            angles          ->          all angles from Lidar
+            goal            ->          [goal_x, goal_y]
         """
-        robot_location = robot_pose[:2]
-        a = (self.target_y - robot_location[1]) / (self.target_x - robot_location[0])
-        b = ( (self.target_y + robot_location[1]) - a*(self.target_x + robot_location[1]) ) / 2.
-        return np.array([a, -1, b])
+        d_reach = 100
+        for i in range(len(ranges)):
+            current_range = ranges[i]
+            current_angle = angles[i] + yaw
+            if current_range > self.Lidar.range_max:
+                current_range = 0.
+            laser_seg = np.array([x, np.array([x[0] + current_range * np.cos(current_angle), \
+                                            x[1] + current_range * np.sin(current_angle)])])
+            current_d = self.LineSegDist(goal, laser_seg)
+            if current_d <= d_reach:
+                d_reach = current_d
+        return d_reach
 
     def DistPntLine(self, point, line):
         """
@@ -365,31 +394,29 @@ class BugTwoAlgorithm(object):
         distance = np.matmul(line, vector) / np.sqrt(line[0]**2 + line[1]**2)
         return distance
 
-    def MlineMeet(self, robot_pose):
-        """
-        Find out whether the m-line is met.
-        """
-        dist_to_mline = self.DistPntLine(robot_pose[:2], self.m_line)
-        dist_to_mline = np.abs(dist_to_mline)
-        if dist_to_mline <= MLINE_MEET_THRESHOLD:
-            mline_encounter = True
-        else:
-            mline_encounter = False
-        return mline_encounter
-
     def ObstacleBLocking(self, robot_pose, ranges, angles):
         """
         Find out if there is an obstacle blocking the way.
         """
         all_obstacles = self.Continuity(ranges, angles, robot_pose[:2], robot_pose[-1])
+        print("size of ranges:", len(ranges))
+        print("how many obstacles:", len(all_obstacles))
         x_to_goal = np.array([robot_pose[:2], np.array([self.target_x, self.target_y])])
+        # xmin_to_goal = np.array([robot_pose[:2] + ROBOT_SIZE*np.array([np.cos(robot_pose[-1]), 
+        #                             ROBOT_SIZE*np.sin(robot_pose[-1])]), np.array([self.target_x, self.target_y])])
+        # xmax_to_goal = np.array([robot_pose[:2] - ROBOT_SIZE*np.array([np.cos(robot_pose[-1]), 
+        #                             ROBOT_SIZE*np.sin(robot_pose[-1])]), np.array([self.target_x, self.target_y])])
         intersection = False
+        obstacle = None
         for obstacle_id in range(len(all_obstacles)):
             obstacle = all_obstacles[obstacle_id]
             intersection = self.Intersection(x_to_goal, obstacle)
+            # intersection_min = self.Intersection(xmin_to_goal, obstacle)
+            # intersection_max = self.Intersection(xmax_to_goal, obstacle)
+            # intersection = intersection and intersection_min and intersection_max
             if intersection:
                 break
-        return intersection
+        return intersection, obstacle
     
     def GoalReached(self, robot_pose):
         """
@@ -442,7 +469,35 @@ class BugTwoAlgorithm(object):
             w = 0.
         return v, w
 
-    def BugTwo(self, robot_pose, ranges, angles, range_min, angle_min):
+    def MotionToGo(self, obstacle, goal, robot_pose):
+        """
+        Function:
+            Implement motion to go.
+
+        Args:
+            ranges      ->      laser ray's ranges
+            angles      ->      laser ray's angles
+            goal        ->      [goal_x, goal_y]
+            x           ->      robot's positio, normally [0, 0]
+        """
+        x = robot_pose[:2]
+        yaw = robot_pose[-1]
+        x_to_goal = np.array([x, goal])
+        move_to_point = self.HeuristicDist(obstacle, x, goal)
+        print(obstacle)
+        print(move_to_point)
+        y_diff = move_to_point[1] - x[1]
+        theta = np.arcsin(y_diff / self.EuclideanDist(move_to_point, x))
+        # print([theta, yaw, theta-yaw])
+        if abs(theta - yaw) <= 0.2:
+            velocity = 0.2
+            omega = 0.
+        else:
+            omega = np.sign(theta - yaw) * 0.2
+            velocity = 0.
+        return velocity, omega
+
+    def TangentBug(self, robot_pose, ranges, angles, range_min, angle_min):
         """
         Self-implementation of Bug 1
         """
@@ -452,60 +507,59 @@ class BugTwoAlgorithm(object):
             w = 0.
             self.target_x = None
             self.target_y = None
-            self.m_line = None
             print("----------------------------------------------------")
             print("TARGET REACHED, PLEASE ENTER A NEW TARGET.")
             print("----------------------------------------------------")
             print("\n")
         else:
-            if self.m_line is None:
-                self.m_line = self.GetMline(robot_pose)
-
-            blocking = self.ObstacleBLocking(robot_pose, ranges, angles)
+            blocking, obstacle = self.ObstacleBLocking(robot_pose, ranges, angles)
             if range_min is None or (not blocking and self.q_hit is None):
                 v, w = self.MoveToTarget(robot_pose, orientation_err)
             else:
                 if self.q_hit is None:
                     self.q_hit = robot_pose[:2]
-
-                v, w = self.BoundaryFollowing(range_min, angle_min)
-                mline_meet = self.MlineMeet(robot_pose)
                 
-                if self.explore:
-                    if self.EuclideanDist(robot_pose[:2], self.q_hit) > Q_H_REVISIT_THRESHOLD + 0.2:
-                        self.explore = False
-                else:
-                    if mline_meet:
-                        if not blocking:
-                            d_x_goal = self.EuclideanDist(robot_pose[:2], np.array([self.target_x, self.target_y]))
-                            d_qH_goal = self.EuclideanDist(self.q_hit, np.array([self.target_x, self.target_y]))
-                            if (d_qH_goal - d_x_goal) >= CLOSER_THRESHOLD:
-                                self.leave = True
-                    if self.EuclideanDist(robot_pose[:2], self.q_hit) <= Q_H_REVISIT_THRESHOLD:
-                        self.whole_obstacle_visited = True
+                v, w = self.MotionToGo(obstacle, \
+                                np.array([self.target_x, self.target_y]), robot_pose)
 
-                print("Whether mline met:", mline_meet)
-                print("whether leave:", self.leave)
+    #             v, w = self.BoundaryFollowing(range_min, angle_min)
+    #             mline_meet = self.MlineMeet(robot_pose)
+                
+    #             if self.explore:
+    #                 if self.EuclideanDist(robot_pose[:2], self.q_hit) > Q_H_REVISIT_THRESHOLD + 0.2:
+    #                     self.explore = False
+    #             else:
+    #                 if mline_meet:
+    #                     if not blocking:
+    #                         d_x_goal = self.EuclideanDist(robot_pose[:2], np.array([self.target_x, self.target_y]))
+    #                         d_qH_goal = self.EuclideanDist(self.q_hit, np.array([self.target_x, self.target_y]))
+    #                         if (d_qH_goal - d_x_goal) >= CLOSER_THRESHOLD:
+    #                             self.leave = True
+    #                 if self.EuclideanDist(robot_pose[:2], self.q_hit) <= Q_H_REVISIT_THRESHOLD:
+    #                     self.whole_obstacle_visited = True
 
-                if self.leave:
-                    self.q_hit = None
-                    self.explore = True
-                    self.leave = False
+    #             print("Whether mline met:", mline_meet)
+    #             print("whether leave:", self.leave)
+
+    #             if self.leave:
+    #                 self.q_hit = None
+    #                 self.explore = True
+    #                 self.leave = False
             
-                if self.whole_obstacle_visited:
-                    self.q_hit = None
-                    self.explore = True
-                    self.leave = False
-                    self.whole_obstacle_visited = False
-                    v = 0.
-                    w = 0.
-                    self.target_x = None
-                    self.target_y = None
-                    self.m_line = None
-                    print("---------------------------------------------------------")
-                    print("NO SOLUTION EXIST, ENTER A NEW DESTINATION AND TRY AGAIN.")
-                    print("---------------------------------------------------------")
-                    print("\n")
+    #             if self.whole_obstacle_visited:
+    #                 self.q_hit = None
+    #                 self.explore = True
+    #                 self.leave = False
+    #                 self.whole_obstacle_visited = False
+    #                 v = 0.
+    #                 w = 0.
+    #                 self.target_x = None
+    #                 self.target_y = None
+    #                 self.m_line = None
+    #                 print("---------------------------------------------------------")
+    #                 print("NO SOLUTION EXIST, ENTER A NEW DESTINATION AND TRY AGAIN.")
+    #                 print("---------------------------------------------------------")
+    #                 print("\n")
         return v, w
 
     ##############################################################################
@@ -550,16 +604,16 @@ class BugTwoAlgorithm(object):
             else:
                 robot_pose = self.GetRobotInfo()
                 ranges, angles, range_min, angle_min = self.GetObstaclePos()
-                v, w = self.BugTwo(robot_pose, ranges, angles, range_min, angle_min)
+                v, w = self.TangentBug(robot_pose, ranges, angles, range_min, angle_min)
                 print("---------------------- keep freshing the state --------------------")
-                print(self.explore)
+                # print(self.explore)
 
                 self.Navigation(v, w)
                 self.pub.publish(self.vel)
                 self.rate.sleep()
             
 if __name__ == "__main__":
-    test = BugTwoAlgorithm()
+    test = TangentBugAlgorithm()
     try:
         test.Run()
     except rospy.ROSInternalException:

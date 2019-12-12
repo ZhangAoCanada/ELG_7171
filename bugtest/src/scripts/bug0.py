@@ -12,31 +12,29 @@ from sensor_msgs.msg import LaserScan
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 """
-The translation and orientation information I received:
+rosrun tf tf_echo /odom /base_laser
 
-- Translation: [-0.032, 0.000, 0.172]
-- Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
-            in RPY (radian) [0.000, -0.000, 0.000]
-            in RPY (degree) [0.000, -0.000, 0.000]
+- Translation: [0.337, 0.000, 0.308]
+- Rotation: in Quaternion [1.000, 0.000, 0.000, 0.000]
+            in RPY (radian) [3.142, -0.000, 0.000]
+            in RPY (degree) [180.000, -0.000, 0.003]
 """
+OBSTACLE_THRESHOLD = 1.5
 # hyper parameters settings
-ROTATION_TOLERANCE = 0.02
-CONTINUITY_MAX = 1.2
-CONTINUITY_THRESHOLD = 0.3
-
-MLINE_MEET_THRESHOLD = 0.2
-CLOSER_THRESHOLD = 0.5
 GOAL_REACHED_THRESHOLD = 0.5
 Q_H_REVISIT_THRESHOLD = 0.5
 Q_L_MEET = 0.3
+ROTATION_TOLERANCE = 0.02
+CONTINUITY_MAX = 1.2
+CONTINUITY_THRESHOLD = 0.3
 L = 1.
 E_MAX = 0.3
-X_L = - 0.032
+X_L = 0.337
 Y_L = 0.000
 THETA = 0.00
-K_P = 0.1
+K_P = 0.2
 
-class BugTwoAlgorithm(object):
+class BugOne(object):
     def __init__(self):
         """
         Initialization
@@ -45,10 +43,10 @@ class BugTwoAlgorithm(object):
         self.target_x = None
         self.target_y = None
         self.q_hit = None
+        self.shortest = 100.
+        self.q_leave = None
         self.explore = True
         self.whole_obstacle_visited = False
-        self.leave = False
-        self.m_line = None
         # publishing node and subscribing node
         self.odom = Odometry()
         self.vel = Twist()
@@ -58,7 +56,7 @@ class BugTwoAlgorithm(object):
         # publish to /cmd_vel as assignment asks
         self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
         # subscribe to /odometry/filtered and /scan as assignment asks
-        self.sub1 = rospy.Subscriber('/odom', Odometry, self.UpdateOdom)
+        self.sub1 = rospy.Subscriber('/odometry/filtered', Odometry, self.UpdateOdom)
         self.sub2 = rospy.Subscriber('/scan', LaserScan, self.UpdateScan)
         # set up the commend sending frequency, which, as requirement, is 10Hz
         self.rate = rospy.Rate(10)
@@ -118,8 +116,7 @@ class BugTwoAlgorithm(object):
             if range_min > self.Lidar.range_max:
                 range_min = None
             # calculate the angular position of the obstacle according to the range index
-            angles = self.Lidar.angle_min + range_ind * self.Lidar.angle_increment
-            angles = np.where(angles > np.pi, angles - 2*np.pi, angles)
+            angles = self.Lidar.angle_max - range_ind * self.Lidar.angle_increment
             range_min_index = np.argmin(ranges)
             object_angle = angles[range_min_index]
             # if object_angle > np.pi:
@@ -172,8 +169,8 @@ class BugTwoAlgorithm(object):
         # Transformation matrix^-1 * Rotation matrix
         H_11 = np.cos(THETA + alpha) + Y_L / X_L * np.sin(THETA + alpha)
         H_12 = -np.sin(THETA + alpha) + Y_L / X_L * np.cos(THETA + alpha)
-        H_21 = 1 / np.abs(X_L) * np.sin(THETA + alpha)
-        H_22 = 1 / np.abs(X_L) * np.cos(THETA + alpha)
+        H_21 = 1 / X_L * np.sin(THETA + alpha)
+        H_22 = 1 /X_L * np.cos(THETA + alpha)
         H_inverse = np.array([[H_11, H_12], [H_21, H_22]])
         # get v_l^a
         v_la = np.array([[v_a], [w_a]])
@@ -223,9 +220,6 @@ class BugTwoAlgorithm(object):
         Returns:
             all_objects ->      [ [O1, O2], [O3, O4], ... ]
         """
-        ranges = np.roll(ranges, len(ranges)//2)
-        angles = np.roll(angles, len(angles)//2)
-
         all_objects = []
         current_object = []
         for ind in range(len(ranges)):
@@ -284,42 +278,14 @@ class BugTwoAlgorithm(object):
         return intersection
 
     ##############################################################################
-    #                               Bug 2 Alogrithm                              #
+    #                               Bug 0 Alogrithm                              #
     ##############################################################################
-    def GetMline(self, robot_pose):
-        """
-        Get the m-line
-        """
-        robot_location = robot_pose[:2]
-        a = (self.target_y - robot_location[1]) / (self.target_x - robot_location[0])
-        b = ( (self.target_y + robot_location[1]) - a*(self.target_x + robot_location[1]) ) / 2.
-        return np.array([a, -1, b])
-
-    def DistPntLine(self, point, line):
-        """
-        Calculate the distance between a point to a line.
-        """
-        vector = np.array([point[0], point[1], 1]).T
-        distance = np.matmul(line, vector) / np.sqrt(line[0]**2 + line[1]**2)
-        return distance
-
-    def MlineMeet(self, robot_pose):
-        """
-        Find out whether the m-line is met.
-        """
-        dist_to_mline = self.DistPntLine(robot_pose[:2], self.m_line)
-        dist_to_mline = np.abs(dist_to_mline)
-        if dist_to_mline <= MLINE_MEET_THRESHOLD:
-            mline_encounter = True
-        else:
-            mline_encounter = False
-        return mline_encounter
-
     def ObstacleBLocking(self, robot_pose, ranges, angles):
         """
         Find out if there is an obstacle blocking the way.
         """
         all_obstacles = self.Continuity(ranges, angles, robot_pose[:2], robot_pose[-1])
+        print("how many obstacles:", len(all_obstacles))
         x_to_goal = np.array([robot_pose[:2], np.array([self.target_x, self.target_y])])
         intersection = False
         for obstacle_id in range(len(all_obstacles)):
@@ -380,7 +346,7 @@ class BugTwoAlgorithm(object):
             w = 0.
         return v, w
 
-    def BugTwo(self, robot_pose, ranges, angles, range_min, angle_min):
+    def BugZero(self, robot_pose, ranges, angles, range_min, angle_min):
         """
         Self-implementation of Bug 1
         """
@@ -390,60 +356,19 @@ class BugTwoAlgorithm(object):
             w = 0.
             self.target_x = None
             self.target_y = None
-            self.m_line = None
             print("----------------------------------------------------")
             print("TARGET REACHED, PLEASE ENTER A NEW TARGET.")
             print("----------------------------------------------------")
             print("\n")
         else:
-            if self.m_line is None:
-                self.m_line = self.GetMline(robot_pose)
-
             blocking = self.ObstacleBLocking(robot_pose, ranges, angles)
-            if range_min is None or (not blocking and self.q_hit is None):
+            if range_min is None or not blocking:
                 v, w = self.MoveToTarget(robot_pose, orientation_err)
             else:
-                if self.q_hit is None:
-                    self.q_hit = robot_pose[:2]
-
                 v, w = self.BoundaryFollowing(range_min, angle_min)
-                mline_meet = self.MlineMeet(robot_pose)
-                
-                if self.explore:
-                    if self.EuclideanDist(robot_pose[:2], self.q_hit) > Q_H_REVISIT_THRESHOLD + 0.2:
-                        self.explore = False
-                else:
-                    if mline_meet:
-                        if not blocking:
-                            d_x_goal = self.EuclideanDist(robot_pose[:2], np.array([self.target_x, self.target_y]))
-                            d_qH_goal = self.EuclideanDist(self.q_hit, np.array([self.target_x, self.target_y]))
-                            if (d_qH_goal - d_x_goal) >= CLOSER_THRESHOLD:
-                                self.leave = True
-                    if self.EuclideanDist(robot_pose[:2], self.q_hit) <= Q_H_REVISIT_THRESHOLD:
-                        self.whole_obstacle_visited = True
-
-                print("Whether mline met:", mline_meet)
-                print("whether leave:", self.leave)
-
-                if self.leave:
-                    self.q_hit = None
-                    self.explore = True
-                    self.leave = False
-            
-                if self.whole_obstacle_visited:
-                    self.q_hit = None
-                    self.explore = True
-                    self.leave = False
-                    self.whole_obstacle_visited = False
-                    v = 0.
-                    w = 0.
-                    self.target_x = None
-                    self.target_y = None
-                    self.m_line = None
-                    print("---------------------------------------------------------")
-                    print("NO SOLUTION EXIST, ENTER A NEW DESTINATION AND TRY AGAIN.")
-                    print("---------------------------------------------------------")
-                    print("\n")
+        
+            print("-------------------------- state freshing ---------------------------")
+            print("if blocking:", blocking)
         return v, w
 
     ##############################################################################
@@ -488,16 +413,13 @@ class BugTwoAlgorithm(object):
             else:
                 robot_pose = self.GetRobotInfo()
                 ranges, angles, range_min, angle_min = self.GetObstaclePos()
-                v, w = self.BugTwo(robot_pose, ranges, angles, range_min, angle_min)
-                print("---------------------- keep freshing the state --------------------")
-                print(self.explore)
-
+                v, w = self.BugZero(robot_pose, ranges, angles, range_min, angle_min)
                 self.Navigation(v, w)
                 self.pub.publish(self.vel)
                 self.rate.sleep()
             
 if __name__ == "__main__":
-    test = BugTwoAlgorithm()
+    test = BugOne()
     try:
         test.Run()
     except rospy.ROSInternalException:
